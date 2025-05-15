@@ -1,0 +1,118 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neurology Note Generator</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1, h2 { color: #333; }
+        .input-section { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        textarea, input[type="file"] { width: 98%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        textarea { min-height: 80px; }
+        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #0056b3; }
+        #outputArea { margin-top: 20px; padding: 15px; border: 1px solid #ccc; background-color: #e9ecef; border-radius: 4px; white-space: pre-wrap; font-family: monospace; }
+        .loading { display: none; text-align: center; margin-top: 20px; }
+        .error { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Neurology Note Generator</h1>
+
+        <form id="noteForm">
+            <div class="input-section">
+                <h2>Background Information (Prior to Visit)</h2>
+                <label for="background_text">Direct Text Input:</label>
+                <textarea id="background_text" name="background_text"></textarea>
+                <label for="background_file">Upload File (txt, pdf):</label>
+                <input type="file" id="background_file" name="background_file" accept=".txt,.pdf">
+            </div>
+
+            <div class="input-section">
+                <h2>Additional Information (Your insights, emphasis)</h2>
+                <label for="additional_text">Direct Text Input:</label>
+                <textarea id="additional_text" name="additional_text"></textarea>
+                <label for="additional_file">Upload File (txt, pdf):</label>
+                <input type="file" id="additional_file" name="additional_file" accept=".txt,.pdf">
+            </div>
+
+            <div class="input-section">
+                <h2>Transcription (Visit recording)</h2>
+                <label for="transcription_text">Direct Text Input (if already transcribed):</label>
+                <textarea id="transcription_text" name="transcription_text"></textarea>
+                <label for="transcription_file">Upload Audio File (wav, mp3, m4a):</label>
+                <input type="file" id="transcription_file" name="transcription_file" accept=".wav,.mp3,.m4a">
+            </div>
+
+            <div class="input-section">
+                <h2>Revised Information (Further comments, post-review additions)</h2>
+                <label for="revised_text">Direct Text Input:</label>
+                <textarea id="revised_text" name="revised_text"></textarea>
+                <label for="revised_file">Upload File (txt, pdf):</label>
+                <input type="file" id="revised_file" name="revised_file" accept=".txt,.pdf">
+            </div>
+
+            <div>
+                <input type="checkbox" id="deidentify" name="deidentify" checked>
+                <label for="deidentify" style="display: inline; font-weight: normal;">Attempt basic de-identification of text inputs</label>
+            </div>
+            <br>
+            <button type="submit">Generate Note</button>
+        </form>
+
+        <div id="loading" class="loading">
+            <p>Generating note, please wait...</p>
+            <!-- You can add a spinner icon here -->
+        </div>
+        <div id="errorDisplay" class="error"></div>
+        <div id="outputAreaContainer" style="display:none;">
+            <h2>Generated Note:</h2>
+            <div id="outputArea"></div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('noteForm');
+        const outputArea = document.getElementById('outputArea');
+        const outputAreaContainer = document.getElementById('outputAreaContainer');
+        const loadingDiv = document.getElementById('loading');
+        const errorDisplay = document.getElementById('errorDisplay');
+
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            loadingDiv.style.display = 'block';
+            outputAreaContainer.style.display = 'none';
+            outputArea.textContent = '';
+            errorDisplay.textContent = '';
+
+            const formData = new FormData(form); // Gathers all form data including files
+
+            try {
+                const response = await fetch('/generate_note', {
+                    method: 'POST',
+                    body: formData // FormData handles multipart/form-data encoding for files
+                });
+
+                const result = await response.json();
+                loadingDiv.style.display = 'none';
+
+                if (response.ok) {
+                    outputArea.textContent = result.note;
+                    outputAreaContainer.style.display = 'block';
+                } else {
+                    errorDisplay.textContent = 'Error: ' + (result.error || 'Unknown server error');
+                }
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                errorDisplay.textContent = 'Network error or server unavailable: ' + error.message;
+                console.error('Fetch error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+# Environment
+.env
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE / Editor specific
+.vscode/
+.idea/
+*.swp
+*~
+
+# Uploads folder (if you don't want to commit test uploads)
+uploads/ 
+
+# Other OS specific files
+.DS_Store
+Thumbs.db
